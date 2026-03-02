@@ -1,0 +1,10 @@
+FROM eclipse-temurin:25-jre AS runtime
+
+WORKDIR /work/
+COPY target/quarkus-app/lib/ /work/lib/
+COPY target/quarkus-app/*.jar /work/
+COPY target/quarkus-app/app/ /work/app/
+COPY target/quarkus-app/quarkus/ /work/quarkus/
+
+EXPOSE 8080
+ENTRYPOINT ["java","-jar","quarkus-run.jar"]
