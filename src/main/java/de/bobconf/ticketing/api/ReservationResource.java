@@ -25,15 +25,13 @@ public class ReservationResource {
     @GET
     @Path("events")
     public List<Event> getEvents() {
-        // TODO: Event aus DB laden
-        return null;
+        return eventRepository.findAll();
     }
 
     @POST
     @Path("reservations")
     public ReservationResult postReservation(ReservationRequest request) {
-        // TODO: Reservierung vornehmen
         // Läuft auf IO-Thread und ist komplett blockierend
-        return null;
+        return reservationService.reserve(request);
     }
 }
