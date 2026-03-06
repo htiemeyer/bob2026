@@ -14,8 +14,9 @@ public class EventRepository {
     EntityManager em;
 
     public Event findById(Long id) {
+        // TODO: EventManager-Zugriff einbauen
         // BLOCKING: klassischer JPA-Call
-        return em.find(Event.class, id);
+        return null;
     }
 
     public List<Event> findAll() {
