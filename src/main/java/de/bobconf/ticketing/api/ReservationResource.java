@@ -24,12 +24,14 @@ public class ReservationResource {
 
     @GET
     @Path("events")
+    //TODO: Multi
     public List<Event> getEvents() {
         return eventRepository.findAll();
     }
 
     @POST
     @Path("reservations")
+    //TODO: Uni
     public ReservationResult postReservation(ReservationRequest request) {
         // Läuft auf IO-Thread und ist komplett blockierend
         return reservationService.reserve(request);

@@ -18,6 +18,7 @@ public class ReservationService {
     PaymentClient paymentClient;
 
     @Transactional
+    //TODO: Reacitv umbauen
     public ReservationResult reserve(ReservationRequest request) {
         // BLOCKING DB
         Event event = eventRepository.findById(request.eventId());
