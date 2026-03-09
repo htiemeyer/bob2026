@@ -13,6 +13,8 @@
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.version>3.32.2</quarkus.platform.version>
+        <quarkus.native.enabled>true</quarkus.native.enabled>
+
         <compiler-plugin.version>3.15.0</compiler-plugin.version>
 
         <maven.compiler.source>25</maven.compiler.source>

@@ -1,0 +1,16 @@
+FROM quay.io/quarkus/ubi9-quarkus-micro-image:2.0
+WORKDIR /work/
+
+# Binary aus target kopieren
+COPY target/*-runner /work/application
+
+# Rechte setzen (nicht root laufen)
+RUN chmod 775 /work/application \
+    && chown 1001 /work/application \
+    && chmod "g+rwX" /work \
+    && chown 1001:root /work
+
+EXPOSE 8080
+USER 1001
+
+ENTRYPOINT ["./application", "-Dquarkus.http.host=0.0.0.0"]
