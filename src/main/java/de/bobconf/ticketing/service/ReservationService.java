@@ -23,40 +23,46 @@ public class ReservationService {
 
     public Uni<ReservationResult> reserveReactive(ReservationRequest request) {
         return eventRepository.findByIdReactive(request.eventId())
-                .onItem().ifNull().failWith(() ->
-                        new EventNotFoundException("Event not found: " + request.eventId()))
-                .onItem().transformToUni(event -> validateAndReserve(event, request))
-                .onItem().transformToUni(event ->
-                        paymentService.charge(event, request)
-                                .onItem().transform(payment -> new EventPaymentPair(event, payment)))
-                .onItem().transform(pair -> {
-                    if (!pair.payment().success()) {
-                        throw new PaymentFailedException("Payment declined");
-                    }
-                    return ReservationResult.accepted(
-                            pair.event().getId(),
-                            pair.requestedTickets(),
-                            pair.payment().transactionId()
-                    );
-                })
+                .onItem().ifNull().failWith(
+                        () -> new EventNotFoundException("Event not found: " + request.eventId()))
+                // pure Funktion
+                .onItem().transform(event -> validateAndReserve(event, request))
+                // Seiteneffekt: persist
+                .onItem().transformToUni(updatedEvent ->
+                        eventRepository.persistReactive(updatedEvent)
+                                .replaceWith(updatedEvent)
+                )
+                // Seiteneffekt: Payment
+                .onItem().transformToUni(updatedEvent ->
+                        paymentService.charge(updatedEvent, request)
+                                .onItem().transform(payment -> new EventPaymentPair(updatedEvent, payment, request.ticketCount()))
+                )
+                // pure Mapping auf Ergebnis
+                .onItem().transform(pair -> toReservationResult(pair))
                 .onFailure(EventNotFoundException.class)
                 .recoverWithItem(th -> ReservationResult.rejected(th.getMessage()))
                 .onFailure(PaymentFailedException.class)
                 .recoverWithItem(th -> ReservationResult.rejected(th.getMessage()));
     }
 
-    private Uni<Event> validateAndReserve(Event event, ReservationRequest request) {
+    private Event validateAndReserve(Event event, ReservationRequest request) {
         if (!event.hasEnoughTickets(request.ticketCount())) {
-            return Uni.createFrom().failure(
-                    new IllegalStateException("Not enough tickets"));
+            throw new IllegalStateException("Not enough tickets");
         }
-        event.reserve(request.ticketCount());
-        return eventRepository.persistReactive(event);  // Uni<Event>
+        return event.reserve(request.ticketCount()); // neues Event
     }
 
-    private record EventPaymentPair(Event event, PaymentResult payment, int requestedTickets) {
-        EventPaymentPair(Event e, PaymentResult p) {
-            this(e, p, 0);
+    // pure Funktion
+    private ReservationResult toReservationResult(EventPaymentPair pair) {
+        if (!pair.payment().success()) {
+            throw new PaymentFailedException("Payment declined");
         }
+        return ReservationResult.accepted(
+                pair.event().id(),
+                pair.requestedTickets(),
+                pair.payment().transactionId()
+        );
     }
+
+    private record EventPaymentPair(Event event, PaymentResult payment, int requestedTickets) {}
 }
