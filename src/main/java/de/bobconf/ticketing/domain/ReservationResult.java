@@ -1,16 +1,28 @@
 package de.bobconf.ticketing.domain;
 
 public record ReservationResult(
-        boolean success,
+        boolean accepted,
         String message,
         Long eventId,
-        int tickets
-) {
-    public static ReservationResult success(Long eventId, int tickets) {
-        return new ReservationResult(true, "Reservation confirmed", eventId, tickets);
+        int ticketCount,
+        String paymentTransactionId)
+{
+
+    public static ReservationResult accepted(Long eventId, int ticketCount, String txId) {
+        return new ReservationResult(true, "Reservation accepted", eventId, ticketCount, txId);
     }
 
-    public static ReservationResult rejected(String message, Long eventId, int tickets) {
-        return new ReservationResult(false, message, eventId, tickets);
+    public static ReservationResult rejected(String message, Long eventId, int ticketCount, String txId) {
+        return new ReservationResult(false, message, eventId, ticketCount, txId);
+    }
+
+    public static ReservationResult rejected(String message) {
+        return new ReservationResult(
+                false,      // accepted = false
+                message,    // Fehlermeldung (z.B. "Event not found")
+                null,       // kein Event-Name
+                0,          // keine Tickets
+                null        // keine Transaction-ID
+        );
     }
 }

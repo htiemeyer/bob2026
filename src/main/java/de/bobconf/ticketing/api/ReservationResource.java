@@ -5,6 +5,8 @@ import de.bobconf.ticketing.domain.ReservationRequest;
 import de.bobconf.ticketing.domain.ReservationResult;
 import de.bobconf.ticketing.service.EventRepository;
 import de.bobconf.ticketing.service.ReservationService;
+import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -24,14 +26,14 @@ public class ReservationResource {
 
     @GET
     @Path("events")
-    public List<Event> getEvents() {
-        return eventRepository.findAll();
+    public Multi<Event> getEvents() {
+        return eventRepository.streamAllReactive();
     }
 
     @POST
     @Path("reservations")
-    public ReservationResult postReservation(ReservationRequest request) {
+    public Uni<ReservationResult> postReservation(ReservationRequest request) {
         // Läuft auf IO-Thread und ist komplett blockierend
-        return reservationService.reserve(request);
+        return reservationService.reserveReactive(request);
     }
 }

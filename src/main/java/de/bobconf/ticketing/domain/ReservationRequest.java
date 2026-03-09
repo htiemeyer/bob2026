@@ -2,6 +2,6 @@ package de.bobconf.ticketing.domain;
 
 public record ReservationRequest(
         Long eventId,
-        int tickets,
+        int ticketCount,
         String customerEmail
 ) {}
